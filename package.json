@@ -1,0 +1,30 @@
+{
+  "name": "collaborative-todo-app",
+  "version": "1.0.0",
+  "description": "Full-stack collaborative TODO (Kanban) app with Google OAuth",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "setup:db": "cd server && npm run prisma:generate && npm run prisma:migrate && npm run seed",
+    "test": "cd server && npm test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "todo",
+    "kanban",
+    "collaborative",
+    "react",
+    "nodejs",
+    "postgresql",
+    "oauth"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
