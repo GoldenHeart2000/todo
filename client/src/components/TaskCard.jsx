@@ -1,10 +1,18 @@
 import { useState } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useBoardStore } from '../stores/boardStore.js';
 import { formatDate, isOverdue } from '../utils/date.js';
 
 export const TaskCard = ({ task, onEdit }) => {
   const { deleteTask, activeProject } = useBoardStore();
   const [isHovered, setIsHovered] = useState(false);
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   const handleDelete = async (e) => {
     e.stopPropagation();
@@ -26,15 +34,28 @@ export const TaskCard = ({ task, onEdit }) => {
 
   return (
     <div
-      className={`cursor-pointer rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md ${isTaskOverdue ? 'border-red-300 bg-red-50' : ''}`}
+      ref={setNodeRef}
+      style={style}
+      className={`cursor-pointer rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md ${isTaskOverdue ? 'border-red-300 bg-red-50' : ''} ${isDragging ? 'opacity-70' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleEdit}
     >
       <div className="flex items-start justify-between mb-2">
-        <h4 className="font-medium text-gray-900 text-sm">
-          {task.title}
-        </h4>
+        <div className="flex items-center gap-2">
+          <span
+            {...attributes}
+            {...listeners}
+            className="inline-flex h-4 w-3 cursor-grab active:cursor-grabbing select-none text-gray-400"
+            title="Drag"
+          >
+            
+            ≡
+          </span>
+          <h4 className="font-medium text-gray-900 text-sm">
+            {task.title}
+          </h4>
+        </div>
         {isHovered && (
           <button
             onClick={handleDelete}

@@ -12,6 +12,8 @@ import userRoutes from './routes/users.routes.js';
 
 // Import middleware
 import { errorHandler, notFound } from './middleware/errors.js';
+import { verifyJWT } from './middleware/auth.js';
+import { getMe } from './controllers/auth.controller.js';
 
 // Import passport config
 import './config/passport.js';
@@ -36,6 +38,9 @@ app.use('/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
+
+// Spec-compliant current user endpoint
+app.get('/api/me', verifyJWT, getMe);
 
 // Health check
 app.get('/health', (req, res) => {

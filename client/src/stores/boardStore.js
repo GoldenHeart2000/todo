@@ -105,17 +105,21 @@ export const useBoardStore = create((set, get) => ({
     set(state => ({ tasks: state.tasks.filter(t => t.id !== taskId) }));
   },
 
-  reorderTasks: async (projectId, reorderedTasks) => {
-    // Optimistic update
+  reorderTasks: async (projectId, tasksToUpdate) => {
+    // Optimistic update - apply changes to current tasks
     const prev = get().tasks;
-    set({ tasks: reorderedTasks });
+    const updated = prev.map(task => {
+      const update = tasksToUpdate.find(t => t.id === task.id);
+      return update ? { ...task, status: update.status, order: update.order } : task;
+    });
+    set({ tasks: updated });
+    
     try {
-      const payload = reorderedTasks.map(t => ({ id: t.id, status: t.status, order: t.order }));
       const res = await fetch(`${API_BASE_URL}/api/tasks/${projectId}/reorder`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tasks: payload }),
+        body: JSON.stringify({ tasks: tasksToUpdate }),
       });
       if (!res.ok) throw new Error('Failed to reorder');
     } catch (e) {

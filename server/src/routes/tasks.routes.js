@@ -19,11 +19,11 @@ router.get('/:projectId', getTasks);
 // Create new task
 router.post('/:projectId', createTask);
 
-// Update task
-router.put('/:projectId/:taskId', updateTask);
-
 // Reorder tasks
 router.put('/:projectId/reorder', reorderTasks);
+
+// Update task
+router.put('/:projectId/:taskId', updateTask);
 
 // Delete task
 router.delete('/:projectId/:taskId', deleteTask);

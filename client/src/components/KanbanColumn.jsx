@@ -1,7 +1,5 @@
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { useDroppable } from '@dnd-kit/core';
 import { TaskCard } from './TaskCard.jsx';
-import { useBoardStore } from '../stores/boardStore.js';
 
 export const KanbanColumn = ({ 
   status, 
@@ -10,21 +8,7 @@ export const KanbanColumn = ({
   onTaskEdit, 
   onAddTask 
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: status,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  const { setNodeRef, isOver } = useDroppable({ id: status });
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -42,10 +26,7 @@ export const KanbanColumn = ({
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className={`min-h-[400px] w-80 rounded-lg bg-gray-50 p-4 ${isDragging ? 'opacity-50' : ''}`}
-      {...attributes}
-      {...listeners}
+      className={`min-h-[400px] w-80 rounded-lg p-4 ${isOver ? 'bg-blue-50' : 'bg-gray-50'}`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">

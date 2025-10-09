@@ -4,7 +4,6 @@ import prisma from '../../prismaClient.js';
 export const verifyJWT = async (req, res, next) => {
   try {
     const token = req.cookies[process.env.COOKIE_NAME || 'todo_token'];
-    
     if (!token) {
       return res.status(401).json({ 
         error: true, 
@@ -12,12 +11,12 @@ export const verifyJWT = async (req, res, next) => {
         code: 'NO_TOKEN'
       });
     }
-
+    
     const decoded = verifyToken(token);
     const user = await prisma.user.findUnique({
       where: { id: decoded.sub },
     });
-
+    
     if (!user) {
       return res.status(401).json({ 
         error: true, 

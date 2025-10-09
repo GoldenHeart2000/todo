@@ -5,7 +5,7 @@
   "description": "Backend for collaborative TODO app",
   "main": "src/index.js",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon --watch src --exec node src/index.js",
+    "dev": " nodemon --watch src --exec node src/index.js",
     "start": "node src/index.js",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",

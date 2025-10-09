@@ -161,36 +161,53 @@ export const reorderTasks = async (req, res, next) => {
   try {
     const { projectId } = req.params;
     const { tasks } = req.body;
-
     if (!Array.isArray(tasks)) {
       return sendError(res, 'Tasks must be an array', 400, 'VALIDATION_ERROR');
     }
 
-    // Check if user has access to project
+    // Check access
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
-        members: {
-          some: {
-            userId: req.user.id
-          }
-        }
-      }
+        members: { some: { userId: req.user.id } },
+      },
     });
-
+    console.log(project)
     if (!project) {
       return sendError(res, 'Project not found', 404, 'NOT_FOUND');
     }
 
-    // Update tasks in a transaction
+    // Normalize payload and filter invalid entries
+    const normalized = tasks
+      .filter(t => t && typeof t.id === 'string')
+      .map(t => ({ id: t.id, status: String(t.status || ''), order: Number.isFinite(t.order) ? t.order : 0 }));
+
+    if (normalized.length === 0) {
+      return sendSuccess(res, null, 'Nothing to reorder');
+    }
+
+    // Only update tasks that belong to this project
+    const existing = await prisma.task.findMany({
+      where: {
+        projectId,
+        id: { in: normalized.map(t => t.id) },
+      },
+      select: { id: true },
+    });
+
+    const existingIds = new Set(existing.map(t => t.id));
+    const updates = normalized.filter(t => existingIds.has(t.id));
+
+    if (updates.length === 0) {
+      // Gracefully return instead of throwing Task not found
+      return sendSuccess(res, null, 'No matching tasks to update');
+    }
+
     await prisma.$transaction(
-      tasks.map((task) =>
+      updates.map((t) =>
         prisma.task.update({
-          where: { id: task.id },
-          data: {
-            status: task.status,
-            order: task.order
-          }
+          where: { id: t.id },
+          data: { status: t.status, order: t.order },
         })
       )
     );

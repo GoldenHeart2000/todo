@@ -3,7 +3,7 @@ import { useBoardStore } from '../../stores/boardStore.js';
 import { ProjectCard } from '../../components/ProjectCard.jsx';
 
 export const ProjectsList = () => {
-  const { projects, fetchProjects, isLoading } = useBoardStore();
+  const { projects, fetchProjects, isLoading, createProject, setActiveProject } = useBoardStore();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newProject, setNewProject] = useState({ name: '', description: '' });
 
@@ -16,8 +16,8 @@ export const ProjectsList = () => {
     if (!newProject.name.trim()) return;
 
     try {
-      // Create via store and refresh
-      // Optionally set created as active
+      const project = await createProject(newProject);
+      setActiveProject(project);
       setNewProject({ name: '', description: '' });
       setShowCreateForm(false);
     } catch (error) {
