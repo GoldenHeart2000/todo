@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { projectsApi, tasksApi, usersApi } from '../api/index.js';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 export const useBoardStore = create((set, get) => ({
   projects: [],
@@ -9,18 +10,41 @@ export const useBoardStore = create((set, get) => ({
   columns: ['todo', 'in-progress', 'done'],
   isLoading: false,
 
+  // Initialize board after successful auth
+  initializeAfterAuth: async () => {
+    await get().fetchProjects();
+    const { projects } = get();
+    if (projects.length > 0) {
+      get().setActiveProject(projects[0]);
+    }
+  },
+
   // Projects
   fetchProjects: async () => {
     set({ isLoading: true });
     try {
-      const response = await projectsApi.getProjects();
-      if (response.success) {
-        set({ projects: response.data, isLoading: false });
-      }
+      const res = await fetch(`${API_BASE_URL}/api/projects`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch projects');
+      const json = await res.json();
+      if (json?.success) set({ projects: json.data, isLoading: false });
+      else set({ isLoading: false });
     } catch (error) {
       console.error('Error fetching projects:', error);
       set({ isLoading: false });
     }
+  },
+
+  createProject: async (data) => {
+    const res = await fetch(`${API_BASE_URL}/api/projects`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to create project');
+    const json = await res.json();
+    set(state => ({ projects: [json.data, ...state.projects] }));
+    return json.data;
   },
 
   setActiveProject: (project) => {
@@ -35,10 +59,11 @@ export const useBoardStore = create((set, get) => ({
   fetchTasks: async (projectId) => {
     set({ isLoading: true });
     try {
-      const response = await tasksApi.getTasks(projectId);
-      if (response.success) {
-        set({ tasks: response.data, isLoading: false });
-      }
+      const res = await fetch(`${API_BASE_URL}/api/tasks/${projectId}`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch tasks');
+      const json = await res.json();
+      if (json?.success) set({ tasks: json.data, isLoading: false });
+      else set({ isLoading: false });
     } catch (error) {
       console.error('Error fetching tasks:', error);
       set({ isLoading: false });
@@ -46,130 +71,96 @@ export const useBoardStore = create((set, get) => ({
   },
 
   createTask: async (projectId, taskData) => {
-    try {
-      const response = await tasksApi.createTask(projectId, taskData);
-      if (response.success) {
-        set(state => ({
-          tasks: [...state.tasks, response.data]
-        }));
-        return response.data;
-      }
-    } catch (error) {
-      console.error('Error creating task:', error);
-      throw error;
-    }
+    const res = await fetch(`${API_BASE_URL}/api/tasks/${projectId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(taskData),
+    });
+    if (!res.ok) throw new Error('Failed to create task');
+    const json = await res.json();
+    set(state => ({ tasks: [...state.tasks, json.data] }));
+    return json.data;
   },
 
   updateTask: async (projectId, taskId, taskData) => {
-    try {
-      const response = await tasksApi.updateTask(projectId, taskId, taskData);
-      if (response.success) {
-        set(state => ({
-          tasks: state.tasks.map(task => 
-            task.id === taskId ? response.data : task
-          )
-        }));
-        return response.data;
-      }
-    } catch (error) {
-      console.error('Error updating task:', error);
-      throw error;
-    }
+    const res = await fetch(`${API_BASE_URL}/api/tasks/${projectId}/${taskId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(taskData),
+    });
+    if (!res.ok) throw new Error('Failed to update task');
+    const json = await res.json();
+    set(state => ({ tasks: state.tasks.map(t => (t.id === taskId ? json.data : t)) }));
+    return json.data;
   },
 
   deleteTask: async (projectId, taskId) => {
-    try {
-      const response = await tasksApi.deleteTask(projectId, taskId);
-      if (response.success) {
-        set(state => ({
-          tasks: state.tasks.filter(task => task.id !== taskId)
-        }));
-      }
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      throw error;
-    }
+    const res = await fetch(`${API_BASE_URL}/api/tasks/${projectId}/${taskId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Failed to delete task');
+    set(state => ({ tasks: state.tasks.filter(t => t.id !== taskId) }));
   },
 
   reorderTasks: async (projectId, reorderedTasks) => {
+    // Optimistic update
+    const prev = get().tasks;
+    set({ tasks: reorderedTasks });
     try {
-      // Optimistic update
-      set({ tasks: reorderedTasks });
-      
-      const response = await tasksApi.reorderTasks(projectId, reorderedTasks);
-      if (!response.success) {
-        // Revert on error
-        get().fetchTasks(projectId);
-        throw new Error('Failed to reorder tasks');
-      }
-    } catch (error) {
-      console.error('Error reordering tasks:', error);
-      // Revert on error
-      get().fetchTasks(projectId);
-      throw error;
+      const payload = reorderedTasks.map(t => ({ id: t.id, status: t.status, order: t.order }));
+      const res = await fetch(`${API_BASE_URL}/api/tasks/${projectId}/reorder`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasks: payload }),
+      });
+      if (!res.ok) throw new Error('Failed to reorder');
+    } catch (e) {
+      console.error(e);
+      set({ tasks: prev });
     }
   },
 
   // Members
   fetchMembers: async (projectId) => {
     try {
-      const response = await usersApi.getProjectMembers(projectId);
-      if (response.success) {
-        set({ members: response.data });
-      }
-    } catch (error) {
-      console.error('Error fetching members:', error);
+      const res = await fetch(`${API_BASE_URL}/api/users/${projectId}`, { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch members');
+      const json = await res.json();
+      if (json?.success) set({ members: json.data });
+    } catch (e) {
+      console.error(e);
     }
   },
 
-  addMember: async (projectId, memberData) => {
-    try {
-      const response = await projectsApi.addMember(projectId, memberData);
-      if (response.success) {
-        set(state => ({
-          members: [...state.members, response.data]
-        }));
-        return response.data;
-      }
-    } catch (error) {
-      console.error('Error adding member:', error);
-      throw error;
-    }
+  addMember: async (projectId, data) => {
+    const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/members`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to add member');
+    const json = await res.json();
+    set(state => ({ members: [...state.members, json.data] }));
+    return json.data;
   },
 
   removeMember: async (projectId, memberId) => {
-    try {
-      const response = await projectsApi.removeMember(projectId, memberId);
-      if (response.success) {
-        set(state => ({
-          members: state.members.filter(member => member.id !== memberId)
-        }));
-      }
-    } catch (error) {
-      console.error('Error removing member:', error);
-      throw error;
-    }
+    const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/members/${memberId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Failed to remove member');
+    set(state => ({ members: state.members.filter(m => m.id !== memberId) }));
   },
 
-  // Helper functions
+  // Helpers
   getTasksByStatus: (status) => {
     const { tasks } = get();
-    return tasks.filter(task => task.status === status).sort((a, b) => a.order - b.order);
-  },
-
-  getTaskById: (taskId) => {
-    const { tasks } = get();
-    return tasks.find(task => task.id === taskId);
-  },
-
-  getMemberById: (memberId) => {
-    const { members } = get();
-    return members.find(member => member.id === memberId);
-  },
-
-  getUserRole: (userId) => {
-    const { members } = get();
-    const member = members.find(member => member.user.id === userId);
-    return member?.role || null;
+    return tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order);
   },
 }));

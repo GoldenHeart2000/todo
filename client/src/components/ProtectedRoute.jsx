@@ -1,13 +1,20 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.js';
+import { useEffect } from 'react';
+import { useAuthStore } from '../stores/authStore.js';
 
 export const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, refresh } = useAuthStore();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      refresh();
+    }
+  }, [isAuthenticated, refresh]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div className="h-8 w-8 rounded-full border-2 border-gray-300 border-t-blue-600 animate-spin"></div>
       </div>
     );
   }

@@ -26,7 +26,7 @@ export const TaskCard = ({ task, onEdit }) => {
 
   return (
     <div
-      className={`task-card ${isTaskOverdue ? 'border-red-300 bg-red-50' : ''}`}
+      className={`cursor-pointer rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md ${isTaskOverdue ? 'border-red-300 bg-red-50' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleEdit}

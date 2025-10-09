@@ -43,7 +43,7 @@ export const KanbanColumn = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`kanban-column ${isDragging ? 'opacity-50' : ''}`}
+      className={`min-h-[400px] w-80 rounded-lg bg-gray-50 p-4 ${isDragging ? 'opacity-50' : ''}`}
       {...attributes}
       {...listeners}
     >

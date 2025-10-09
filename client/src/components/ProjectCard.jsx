@@ -10,7 +10,7 @@ export const ProjectCard = ({ project }) => {
   return (
     <div
       onClick={handleClick}
-      className="card p-6 cursor-pointer hover:shadow-lg transition-shadow"
+      className="rounded-lg border border-gray-200 bg-white text-gray-950 shadow-sm p-6 cursor-pointer hover:shadow-lg transition-shadow"
     >
       <div className="flex items-start justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">

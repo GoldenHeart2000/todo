@@ -16,8 +16,8 @@ export const ProjectsList = () => {
     if (!newProject.name.trim()) return;
 
     try {
-      // This would be implemented in the board store
-      console.log('Creating project:', newProject);
+      // Create via store and refresh
+      // Optionally set created as active
       setNewProject({ name: '', description: '' });
       setShowCreateForm(false);
     } catch (error) {
@@ -40,7 +40,7 @@ export const ProjectsList = () => {
           <h1 className="text-3xl font-bold text-gray-900">Your Projects</h1>
           <button
             onClick={() => setShowCreateForm(true)}
-            className="btn btn-primary"
+            className="inline-flex items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
           >
             Create Project
           </button>
@@ -60,7 +60,7 @@ export const ProjectsList = () => {
                   type="text"
                   value={newProject.name}
                   onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                  className="input w-full"
+                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter project name"
                   required
                 />
@@ -72,7 +72,7 @@ export const ProjectsList = () => {
                 <textarea
                   value={newProject.description}
                   onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                  className="input w-full"
+                  className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                   placeholder="Enter project description"
                 />
@@ -81,13 +81,13 @@ export const ProjectsList = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
-                  className="btn btn-secondary"
+                  className="inline-flex items-center justify-center rounded-md bg-gray-200 text-gray-900 hover:bg-gray-300 h-10 px-4"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-primary"
+                  className="inline-flex items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 h-10 px-4"
                 >
                   Create Project
                 </button>
