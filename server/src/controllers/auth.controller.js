@@ -25,7 +25,7 @@ export const googleCallback = async (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     };
 
-    res.cookie(process.env.COOKIE_NAME || 'todo_token', token, cookieOptions);
+    res.cookie( 'todo_token', token, cookieOptions);
 
     // Redirect to frontend
     res.redirect(`${process.env.FRONTEND_URL}/app`);
@@ -35,7 +35,7 @@ export const googleCallback = async (req, res, next) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie(process.env.COOKIE_NAME || 'todo_token');
+  res.clearCookie( 'todo_token');
   return sendSuccess(res, null, 'Logged out successfully');
 };
 

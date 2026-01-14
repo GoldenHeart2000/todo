@@ -3,7 +3,7 @@ import prisma from '../../prismaClient.js';
 
 export const verifyJWT = async (req, res, next) => {
   try {
-    const token = req.cookies[process.env.COOKIE_NAME || 'todo_token'];
+    const token = req.cookies['todo_token'];
     if (!token) {
       return res.status(401).json({ 
         error: true, 
