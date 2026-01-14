@@ -17,13 +17,17 @@ export const googleCallback = async (req, res, next) => {
     // Sign JWT token
     const token = signToken({ sub: user.id });
 
-    // Set httpOnly cookie
-    // const cookieOptions = {
+    // Set httpOnly cookie with proper cross-site options so browsers accept it
+    const cookieOptions = {
+      httpOnly: true,
+      // For OAuth redirects (cross-site), browsers require SameSite=None and Secure
+      sameSite: 'none',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    };
 
-    //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    // };
-
-    res.cookie('todo_token', token);
+    res.cookie('todo_token', token, cookieOptions);
 
     // Redirect to frontend
     res.redirect(`${process.env.FRONTEND_URL}/app`);
