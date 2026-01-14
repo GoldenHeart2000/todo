@@ -18,14 +18,12 @@ export const googleCallback = async (req, res, next) => {
     const token = signToken({ sub: user.id });
 
     // Set httpOnly cookie
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    };
+    // const cookieOptions = {
 
-    res.cookie( 'todo_token', token, cookieOptions);
+    //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    // };
+
+    res.cookie('todo_token', token);
 
     // Redirect to frontend
     res.redirect(`${process.env.FRONTEND_URL}/app`);
@@ -35,7 +33,7 @@ export const googleCallback = async (req, res, next) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie( 'todo_token');
+  res.clearCookie('todo_token');
   return sendSuccess(res, null, 'Logged out successfully');
 };
 
